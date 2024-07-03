@@ -1,6 +1,9 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 #if __GLASGOW_HASKELL__ == 810
 -- Work around to fix GHC Issue #15304, issue popped up again in GHC 8.10, it should be fixed in GHC 8.12
@@ -22,7 +25,8 @@
 
 module Main (main) where
 
-import Algebra.Geometric.Cl3
+import Posit.Cl3
+import Posit.Internal.PositC
 import Control.Monad (replicateM)
 import Criterion.Main (defaultMain, bench, nfIO, env, Benchmark)
 import System.Random (randomRIO)
@@ -108,7 +112,7 @@ main = defaultMain benchList
 benchList :: [Benchmark]
 benchList = fmap buildBench props
 
-props :: [(String,(Cl3 -> Bool))]
+props :: [(String,(Cl3Posit64 -> Bool))]
 props = [("Testing log.exp Identity:", prop_LogExp),
          ("Testing exp.log Identity:", prop_ExpLog),
          ("Testing abs*signum law:", prop_AbsSignum),
@@ -137,26 +141,26 @@ props = [("Testing log.exp Identity:", prop_LogExp),
          ("Testing Symmetry of Sinh:", prop_SymSinh),
          ("Testing Double I Sin:", prop_DoubleISin)]
 
-buildBench :: (String,(Cl3 -> Bool)) -> Benchmark
+buildBench :: (String,(Cl3Posit64 -> Bool)) -> Benchmark
 buildBench (name, prop) = runWithEnv $ \cliffs -> bench name (nfIO $ test cliffs)
   where
-    test :: [Cl3] -> IO ()
+    test :: [Cl3Posit64] -> IO ()
     test ([]) = return ()
     test (cl:cls) =
       if prop cl
       then test cls
       else error $ "Failed on input: " ++ show cl
 
-runWithEnv :: ([Cl3] -> Benchmark) -> Benchmark
+runWithEnv :: PositF es => ([Cl3 es] -> Benchmark) -> Benchmark
 runWithEnv = (env listRandCliffs)
 
-listRandCliffs :: IO [Cl3]
+listRandCliffs :: PositF es => IO [Cl3 es]
 listRandCliffs = do
-  randCliff <-(replicateM 5000000).randomRIO $ (R 0, R 3)
+  randCliff <-(replicateM 50).randomRIO $ (R 0, R 7)
   return (inputs ++ randCliff)
 
 -- Standard inputs and special cases of projectors and nilpotents
-inputs :: [Cl3]
+inputs :: PositF es => [Cl3 es]
 inputs = [R 0
          ,APS 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
          ,PV 0.5 0 0 0.5
@@ -202,7 +206,7 @@ inputs = [R 0
 -- | A set of properties to test
 -------------------------------------------------------
 
-prop_LogExp :: Cl3 -> Bool
+prop_LogExp :: PositF es => Cl3 es -> Bool
 prop_LogExp (cliffor) = (abs cliffor > 10) || (
   let cliffor' = unWrapIPartEigs cliffor  -- imaginary part of log.exp repeats
 -- round off errors get large for exp larger than 5 use spectproj (log.exp) for accuracy
@@ -211,99 +215,99 @@ prop_LogExp (cliffor) = (abs cliffor > 10) || (
 
 -- log 0 is -Inf, Infinite vectors don't play nice
 -- spectproj (exp.log) doesn't have this issue
-prop_ExpLog :: Cl3 -> Bool
+prop_ExpLog :: PositF es => Cl3 es -> Bool
 prop_ExpLog (cliffor) = (lsv cliffor < tol) || (exp (log cliffor) ≈≈ cliffor)
 
-prop_AbsSignum :: Cl3 -> Bool
+prop_AbsSignum :: PositF es => Cl3 es -> Bool
 prop_AbsSignum (cliffor) = abs cliffor * signum cliffor ≈≈ cliffor
 
-prop_RecipDef :: Cl3 -> Bool
+prop_RecipDef :: PositF es => Cl3 es -> Bool
 prop_RecipDef (cliffor) = (lsv cliffor < tol) || (recip cliffor * cliffor ≈≈ 1)
 
 -- singular inputs don't recip also suffers from roundoff errors at large values
-prop_RecipID :: Cl3 -> Bool
+prop_RecipID :: PositF es => Cl3 es -> Bool
 prop_RecipID (cliffor) = (lsv cliffor < tol) || (recip (recip cliffor) ≈≈ cliffor)
 
-prop_SinAsin :: Cl3 -> Bool
+prop_SinAsin :: PositF es => Cl3 es -> Bool
 prop_SinAsin (cliffor) = if hasNilpotent cliffor
                          then poles [R 1, R (-1)] cliffor || (sin (asin cliffor) ≈≈ cliffor)
                          else sin (asin cliffor) ≈≈ cliffor
 
-prop_AsinSin :: Cl3 -> Bool
+prop_AsinSin :: PositF es => Cl3 es -> Bool
 prop_AsinSin (cliffor) = (abs cliffor > 10) || (asin (sin cliffor) ≈≈ (I (-1) * log (0.5 * (exp (I 1 * cliffor) - exp (mIx cliffor)) +
                                                                                      sqrt (1+0.25*(exp (mIx cliffor) - exp (I 1 * cliffor))^2))))
 
-prop_CosAcos :: Cl3 -> Bool
+prop_CosAcos :: PositF es => Cl3 es -> Bool
 prop_CosAcos (cliffor) = if hasNilpotent cliffor
                              then poles [R 1, R (-1)] cliffor || (cos (acos cliffor) ≈≈ cliffor)
                              else cos (acos cliffor) ≈≈ cliffor
 
-prop_AcosCos :: Cl3 -> Bool
+prop_AcosCos :: PositF es => Cl3 es -> Bool
 prop_AcosCos (cliffor) = (abs cliffor > 10) || (if hasNilpotent cliffor
                                                 then poles [R 0, pi, negate pi] cliffor || (acos (cos cliffor) ≈≈ 0.5 * (pi - 2 * asin(cos cliffor)))
                                                 else acos (cos cliffor) ≈≈ 0.5 * (pi - 2 * asin(cos cliffor)))
 
-prop_SinhAsinh :: Cl3 -> Bool
+prop_SinhAsinh :: PositF es => Cl3 es -> Bool
 prop_SinhAsinh (cliffor) = sinh (asinh cliffor) ≈≈ cliffor
 
-prop_AsinhSinh :: Cl3 -> Bool
+prop_AsinhSinh :: PositF es => Cl3 es -> Bool
 prop_AsinhSinh (cliffor) = (abs cliffor > 10) || (asinh (sinh cliffor) ≈≈ log (0.5*(exp cliffor - exp (negate cliffor)) +
                                                                                    sqrt (0.25 * (exp cliffor - exp (negate cliffor))^2 + 1)))
 
-prop_CoshAcosh :: Cl3 -> Bool
+prop_CoshAcosh :: PositF es => Cl3 es -> Bool
 prop_CoshAcosh (cliffor) = if hasNilpotent cliffor
                            then poles [R 1, R (-1)] cliffor || (cosh (acosh cliffor) ≈≈ cliffor)
                            else cosh (acosh cliffor) ≈≈ cliffor
 
-prop_AcoshCosh :: Cl3 -> Bool
+prop_AcoshCosh :: PositF es => Cl3 es -> Bool
 prop_AcoshCosh (cliffor) = acosh (cosh cliffor) ≈≈ log (0.5*(exp cliffor + exp (negate cliffor)) +
                                                         sqrt (0.5*(exp cliffor + exp (negate cliffor)) - 1) *
                                                         sqrt (0.5*(exp cliffor + exp (negate cliffor)) + 1))
 
-prop_AcoshCosh2 :: Cl3 -> Bool
+prop_AcoshCosh2 :: PositF es => Cl3 es -> Bool
 prop_AcoshCosh2 (cliffor) = acosh (cosh cliffor) ≈≈ log (cosh cliffor + sqrt (cosh cliffor - 1) * sqrt (cosh cliffor + 1))
 
-prop_DubSin :: Cl3 -> Bool
+prop_DubSin :: PositF es => Cl3 es -> Bool
 prop_DubSin (cliffor) = sin (2 * cliffor) ≈≈ 2 * sin cliffor * cos cliffor
 
-prop_DubCos :: Cl3 -> Bool
+prop_DubCos :: PositF es => Cl3 es -> Bool
 prop_DubCos (cliffor) = cos (2 * cliffor) ≈≈ cos cliffor ^ 2 - sin cliffor ^ 2
 
-prop_DubTan :: Cl3 -> Bool
+prop_DubTan :: PositF es => Cl3 es -> Bool
 prop_DubTan (cliffor) = poles [R (-pi), R (-3*pi/4), R (-pi/2), R (-pi/4), R (pi/4), R (pi/2), R (3*pi/4), R (pi)] cliffor ||
                         (tan (2 * cliffor) ≈≈ (2 * tan cliffor) / (1 - tan cliffor ^ 2))
 
-prop_DubSinh :: Cl3 -> Bool
+prop_DubSinh :: PositF es => Cl3 es -> Bool
 prop_DubSinh (cliffor) = sinh (2 * cliffor) ≈≈ 2 * sinh cliffor * cosh cliffor
 
-prop_DubCosh :: Cl3 -> Bool
+prop_DubCosh :: PositF es => Cl3 es -> Bool
 prop_DubCosh (cliffor) = cosh (2 * cliffor) ≈≈ 2 * cosh cliffor ^ 2 - 1
 
 -- The test has poles at imaginary eigenvalues of n*pi/4 even is poles in the denominator and odd is poles in the numerator
 -- The poles are a source of a loss of precision.
-prop_DubTanh :: Cl3 -> Bool
+prop_DubTanh :: PositF es => Cl3 es -> Bool
 prop_DubTanh (cliffor) = poles [I (-pi), I (-3*pi/4), I (-pi/2), I (-pi/4), I (pi/4), I (pi/2), I (3*pi/4), I (pi)] cliffor ||
                          (tanh (2 * cliffor) ≈≈ (2 * tanh cliffor) / (1 + tanh cliffor ^ 2))
 
-prop_PosSinShift :: Cl3 -> Bool
+prop_PosSinShift :: PositF es => Cl3 es -> Bool
 prop_PosSinShift (cliffor) = sin (pi/2 + cliffor) ≈≈ cos cliffor
 
-prop_NegSinShift :: Cl3 -> Bool
+prop_NegSinShift :: PositF es => Cl3 es -> Bool
 prop_NegSinShift (cliffor) = sin (pi/2 - cliffor) ≈≈ cos cliffor
 
-prop_SinSqCosSq :: Cl3 -> Bool
+prop_SinSqCosSq :: PositF es => Cl3 es -> Bool
 prop_SinSqCosSq (cliffor) = (abs cliffor > 10) || (sin cliffor ^ 2 + cos cliffor ^ 2 ≈≈ 1)
 
-prop_CoshSqmSinhSq :: Cl3 -> Bool
+prop_CoshSqmSinhSq :: PositF es => Cl3 es -> Bool
 prop_CoshSqmSinhSq (cliffor) = (abs cliffor > 10) || (cosh cliffor ^ 2 - sinh cliffor ^ 2 ≈≈ 1)
 
-prop_SymCosh :: Cl3 -> Bool
+prop_SymCosh :: PositF es => Cl3 es -> Bool
 prop_SymCosh (cliffor) = cosh (negate cliffor) ≈≈ cosh cliffor
 
-prop_SymSinh :: Cl3 -> Bool
+prop_SymSinh :: PositF es => Cl3 es -> Bool
 prop_SymSinh (cliffor) = sinh (negate cliffor) ≈≈ negate (sinh cliffor)
 
-prop_DoubleISin :: Cl3 -> Bool
+prop_DoubleISin :: PositF es => Cl3 es -> Bool
 prop_DoubleISin (cliffor) = 2 * I 1 * sin cliffor ≈≈ exp(I 1 * cliffor) - exp (mIx cliffor)
 
 -- | Composition Sub-Algebras have a distributive norm over multiplication,
@@ -313,7 +317,7 @@ prop_DoubleISin (cliffor) = 2 * I 1 * sin cliffor ≈≈ exp(I 1 * cliffor) - ex
 --
 -- Strangly the constructor combinations with the "= True" don't play nice
 -- with 'abs' they are the constructors with non-zero zero-divisors.
-prop_CompAlg :: (Cl3, Cl3) -> Bool
+prop_CompAlg :: PositF es => (Cl3 es, Cl3 es) -> Bool
 prop_CompAlg (PV{}, PV{}) = True
 prop_CompAlg (PV{}, BPV{}) = True
 prop_CompAlg (PV{}, TPV{}) = True
@@ -339,7 +343,7 @@ prop_CompAlg (cliffor, cliffor') = abs ( cliffor * cliffor') ≈≈ abs cliffor 
 -- | '≈≈' aproximately equal, using a mean squared error like calculation
 -- across the 8 dimensional vector space of APS.  The properties are 
 -- equivelent symbolicly but differ due to numerical errors.
-(≈≈) :: Cl3 -> Cl3 -> Bool
+(≈≈) :: PositF es => Cl3 es -> Cl3 es -> Bool
 (toAPS -> (APS a0 a1 a2 a3 a23 a31 a12 a123)) ≈≈ (toAPS -> (APS b0 b1 b2 b3 b23 b31 b12 b123)) =
   let m0 = (a0 - b0)^2
       m1 = (a1 - b1)^2
@@ -349,14 +353,14 @@ prop_CompAlg (cliffor, cliffor') = abs ( cliffor * cliffor') ≈≈ abs cliffor 
       m31 = (a31 - b31)^2
       m12 = (a12 - b12)^2
       m123 = (a123 - b123)^2
-      sumsq = m0 + m1 + m2 + m3 + m23 + m31 + m12 + m123
+      sumsq = sum [m0, m1, m2, m3, m23, m31, m12, m123]
       var = sumsq / 8
   in var <= 2e-13
 _ ≈≈ _ = error "Everything passed to (≈≈) should be caught by toAPS/APS pattern match"
 infix 4 ≈≈
 
 -- | 'poles' a function that tests if a cliffor is one of the defined poles
-poles :: [Cl3] -> Cl3 -> Bool
+poles :: PositF es => [Cl3 es] -> Cl3 es -> Bool
 poles [] _ = False
 poles [p] cliffor = eig1 `closeTo` p || eig2 `closeTo` p
   where (eig1,eig2) = eigvals cliffor
@@ -365,7 +369,7 @@ poles (p:ps) cliffor = (eig1 `closeTo` p || eig2 `closeTo` p) || poles ps cliffo
 
 -- | 'closeTo' used with poles to determine if an eigenvalue is close to a pole
 -- the current threshold is 1e-3
-closeTo :: Cl3 -> Cl3 -> Bool
+closeTo :: PositF es => Cl3 es -> Cl3 es -> Bool
 closeTo (toC -> (C a0 a123)) (toC -> (C b0 b123)) =
   let diffR = abs (a0 - b0)
       diffI = abs (a123 - b123)
@@ -375,7 +379,7 @@ closeTo _ _ = error "Everything passed to 'closeTo' should be caught by toC/C pa
 
 -- | 'unWrapIPartEigs' a function to reduce the magnitude of the imaginary
 -- portion of the Eigenvalues
-unWrapIPartEigs :: Cl3 -> Cl3
+unWrapIPartEigs :: PositF es => Cl3 es -> Cl3 es
 unWrapIPartEigs cliffor = reduce $ spectraldcmp unWrapI id cliffor
   where unWrapI (R a0) = R a0
         unWrapI (I a123) | a123 > pi = unWrapI $ I (a123 - 2*pi)

@@ -1,34 +1,46 @@
 
 ```haskell
---          CCCCCCCCCC      llllllllll                     3333333333
---      CCCCCCCCCCCCCCCCCC   llllllllll                333333333333333333
---    CCCCCCC      CCCCCCCCCC llllllllll            3333333333       333333
---   CCCCC               CCC   llllllllll            333         ##   33333
---  CCCCCC                      llllllllll                       #    33333
---  CCCCC                        llllllllll                          33333
---  CCCCC                         llllllllll          /      @    333333
---  CCCCC                          llllllllll        /|  +         33333
---  CCCCC                          lllllllllll       \|  +         33333
---  CCCCC                         lllllllllllll       \      @    333333
---  CCCCC                        lllllll lllllll                     33333
---  CCCCCC                      lllllll   lllllll                #    33333
---   CCCCC               CCC   lllllll     lllllll   333         ##   33333
---    CCCCCCC      CCCCCCCCCC lllllll       lllllll 3333333333       333333
---      CCCCCCCCCCCCCCCCCC   lllllll         lllllll   333333333333333333
---          CCCCCCCCCC      lllllll           lllllll      3333333333
+--          CCCCCCCC      llllllllll                     3333333333
+--      CCCCCCCCCCCCCCC    lllllllll                333333333333333333
+--    CCCCCCC   CCCCCCCCC   lllllllll           3333333333       333333
+--   CCCCC            CCC   llllllllll            333         ##   33333
+--  CCCCCC                   llllllllll                       #    33333
+--  CCCCC                     llllllllll                          33333
+--  CCCCC                       llllllllll          /      @    333333
+--  CCCCC                        llllllllll        /|  +         33333
+--  CCCCC                        lllllllllll       \|  +         33333
+--  CCCCC                       lllllllllllll       \      @    333333
+--  CCCCC                     lllllll lllllll                     33333
+--  CCCCC                    lllllll   lllllll                #    33333
+--   CCCCC            CCC   lllllll     lllllll   333         ##   33333
+--    CCCCCCC    CCCCCCCCC lllllll       lllllll 3333333333       333333
+--      CCCCCCCCCCCCCCCC   lllllll         lllllll   333333333333333333
+--          CCCCCCCCCC    lllllll           lllllll      3333333333
+--
+--   
+--     PPPPPPP      OOO       SSSSSSS      IIIIIIIIII  TTTTTTTTTTTTTTTT   
+--     PP    PP    O   O    SSS      SS        II             TT            
+--     PP     PP  OO   OO SSS          S       II             TT            
+--     PP     PP  OO   OO  SS                  II             TT            
+--     PP    PP   OO   OO   S SSSSSSS          II             TT            
+--     PPPPPPP    OO   OO     SSSSSSS S        II             TT            
+--     PP         OO   OO             SS       II             TT            
+--     PP         OO   OO   S         SSS      II             TT            
+--     PP          O   O     SS     SSS        II             TT          
+--     PP           OOO       SSSSSSS      IIIIIIIIII         TT            
 ```
 
 
 
-# Cl3
-Cl3 is a Haskell Library implementing standard functions for the [Algebra of Physical Space](https://en.wikipedia.org/wiki/Algebra_of_physical_space) Cl(3,0)
+# cl3-posit
+`cl3-posit` is a Haskell Library implementing standard functions for the [Algebra of Physical Space](https://en.wikipedia.org/wiki/Algebra_of_physical_space) Cl(3,0), using Posit Numbers as the Real approximation.
 
-The goal of the Cl3 library is to provide a specialized, safe, high performance, Algebra of Physical Space implementation.
+The goal of the `cl3-posit` library is to provide a specialized, safe, correct, Algebra of Physical Space implementation.
 This library is suitable for physics simulations.  The library integrates into Haskell's standard prelude and has few dependencies.
-The library uses a ADT data type to specialize to specific graded elements in the Algebra of Physical Space.
+The library uses a GADT data type to specialize to specific graded elements in the Algebra of Physical Space, implemented with a [posit](https://hackage.haskell.org/package/posit) Numbers as the Real approximation, prameterized over the word size.
 
 
-# ADT Interface
+# GADT Interface
 The constructors are specialized to single and double grade combinations and the general case of APS.
 Using the specialized constructors helps the compiler to compile to code similar to that you would hand write.
 The constructors follow the following conventions for basis.
@@ -51,9 +63,9 @@ In MATLAB or Octave one can write: `sqrt(-25)` and get `5.0i`
 
 In standard Haskell `sqrt (-25)` will produce `NaN`
 
-But using the Cl3 library `sqrt (-25) :: Cl3` will produce `I 5.0`, and likewise `(I 5.0)^2` will produce `R (-25)`
+But using the `cl3-posit` library `sqrt (-25) :: Cl3Posit64` will produce `I (5.00000000000000000000)`, and likewise `(I 5.0)^2` will produce `R (-25.00000000000000000000)`
 
-If the unit imaginary is defined as `i = I 1`, expressions very similar to MATLAB can be formed `1.2 + 2.3*i` will produce `C 1.2 2.3`
+If the unit imaginary is defined as `i = I 1`, expressions very similar to MATLAB can be formed `1.2 + 2.3*i` will produce `C (1.20000000000000000069) (2.29999999999999999931)`
 
 Vector addition is also natural, two arbitrary vectors `v1 = V3 a1 a2 a3` and `v2 = V3 b1 b2 b3` can be added `v1 + v2` and scaled `2*(v1+v2)`
 
@@ -101,15 +113,15 @@ The basis vectors multiply with the following multiplication table:
 | __e123__ | e123 |  e23 |  e31 |  e12 |  -e1 |  -e2 |  -e3 |  -e0 |
 
 
-# Multiplication of the ADT Constructors
+# Multiplication of the GADT Constructors
 The grade specialized type constructors multiply with the following multiplication table:
 
-| Mult    |   R |  V3 |  BV |   I |  PV |   H |   C | BPV | ODD | TPV | APS |
+| Mult    |  R |  V3 |  BV |   I |  PV |   H |   C | BPV | ODD | TPV | APS |
 |:-------:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|   __R__ |   R |  V3 |  BV |   I |  PV |   H |   C | BPV | ODD | TPV | APS |
+|  __R__ |  R |  V3 |  BV |   I |  PV |   H |   C | BPV | ODD | TPV | APS |
 |  __V3__ |  V3 |   H | ODD |  BV | APS | ODD | BPV | APS | ODD | APS | APS |
 |  __BV__ |  BV | ODD |   H |  V3 | APS |   H | BPV | APS | ODD | APS | APS |
-|   __I__ |   I |  BV |  V3 |   R | TPV | ODD |   C | BPV |   H |  PV | APS |
+|   __I__ |   I |  BV |  V3 |  R | TPV | ODD |   C | BPV |   H |  PV | APS |
 |  __PV__ |  PV | APS | APS | TPV | APS | APS | APS | APS | APS | APS | APS |
 |   __H__ |   H | ODD |   H | ODD | APS |   H | APS | APS | ODD | APS | APS |
 |   __C__ |   C | BPV | BPV |   C | APS | APS |   C | BPV | APS | APS | APS |
@@ -134,6 +146,7 @@ Then a single constructor data type for APS was developed, but this had all of t
 The specialized ADT Constructor version of the library was developed and it showed that it had some promise.
 More of the design space was explored, a version of the Cl3 library was developed using Multi-parameter Type Classes and Functional Dependencies, this didn't appear to have much gained over the specialized ADT Syntax interface and it didn't use the standard Prelude classes like Num, Float, etc.  It was also difficult for me to figure out how to code a `reduce` function.
 So the specialized ADT Constructor design of the Cl3 library was finished and released.
+Do you GADT?
 
 # How does this fit in with the existing Haskell ecosystem?
 Cl3 is meant to be a [Linear](https://hackage.haskell.org/package/linear) killer based on Geometric Algebra.  The linear package

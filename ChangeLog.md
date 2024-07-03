@@ -1,4 +1,9 @@
-# Revision history for cl3
+# Revision history for cl3-posit
+
+## 1.0.0.0  -- A Posit Cl3 Implementation
+
+* After a many year effort to implement Cl3 in Polymorphic Posit format
+* Branched cl3-posit-1.0 from the cl3-3.0.0.0 branch
 
 ## 3.0.0.0  -- 2022-04-01
 

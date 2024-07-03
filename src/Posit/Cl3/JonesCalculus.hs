@@ -1,9 +1,12 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 #ifndef O_LIQUID
-{-# LANGUAGE Safe #-}
+{- LANGUAGE Safe -}
 #endif
 
 #if __GLASGOW_HASKELL__ == 810
@@ -46,7 +49,7 @@
 --
 --------------------------------------------
 
-module Algebra.Geometric.Cl3.JonesCalculus
+module Posit.Cl3.JonesCalculus
 (
  -- * Jones Vectors
  hpv, vpv,
@@ -76,43 +79,70 @@ module Algebra.Geometric.Cl3.JonesCalculus
 ) where
 
 
-import safe Algebra.Geometric.Cl3 (Cl3(..), dag, bar, toR, toV3, toC, project)
+
+import Posit.Cl3 ( Cl3( R, V3, I)
+                 , dag
+                 , bar
+                 , toR
+                 , toV3
+                 , toC
+                 , project
+                 , randUnitV3 )
+
+-- import Posit hiding (R, phi)
+import Posit.Internal.PositC
+
+
 
 #ifndef O_NO_RANDOM
-import safe Algebra.Geometric.Cl3 (randUnitV3)
+-- import safe Algebra.Geometric.Cl3 (randUnitV3)
 import System.Random (RandomGen)
 #endif
 
+e0 :: PositC es => Cl3 es
 e0 = R 1
+e1 :: PositC es => Cl3 es
 e1 = V3 1 0 0
+e2 :: PositC es => Cl3 es
 e2 = V3 0 1 0
+e3 :: PositC es => Cl3 es
 e3 = V3 0 0 1
 
+i :: PositC es => Cl3 es
 i = I 1
 
+p1 :: PositF es => Cl3 es
 p1 = 0.5 * (e0 + e1)
+p2 :: PositF es => Cl3 es
 p2 = 0.5 * (e0 + e2)
+p3 :: PositF es => Cl3 es
 p3 = 0.5 * (e0 + e3)
 
 
 
 
 -- | 'hpv' horizontally polarized Jones vector
+hpv :: PositF es => Cl3 es
 hpv = signum $ e0 * p3  -- e0 == exp $ (-i/2) * 0 * e2, any vector orthoganl to e3 could have been selected as the rotational axis because the angle is zero
 
 -- | 'vpv' vertically polarized Jones vector
+vpv :: PositF es => Cl3 es
 vpv = signum $ exp ((-i/2) * pi * e2) * p3  -- e2 is selected to obtain the standard form, e1 or any vector orthoganl to e3 could have been selected
 
 -- | 'dpv' diagonally polarized Jones vector
+dpv :: PositF es => Cl3 es
 dpv = signum $ exp ((-i/2) * (pi/2) * e2) * p3  -- rotate -e1 to e3 around rotational axis e2, an angle of pi/2
 
 -- | 'apv' anti-diagonally polarized Jones vector
+apv :: PositF es => Cl3 es
 apv = signum $ exp ((-i/2) * (pi/2) * (-e2)) * p3  -- rotate e1 to e3 around rotational axis -e2, an angle of pi/2
 
 -- | 'rpv' right hand circularly polarized Jones vector
+rpv :: PositF es => Cl3 es
 rpv = signum $ exp ((-i/2) * (pi/2) * (-e1)) * p3  -- rotate -e2 to e3 around rotational axis -e1, and angle of pi/2
 
 -- | 'lpv' left hand circularly polarized Jones vector
+lpv :: PositF es => Cl3 es
 lpv = signum $ exp ((-i/2) * (pi/2) * e1) * p3  -- rotate e2 to e3 around rotational axis e1, an angle of pi/2
 
 -- | 'jv' function that returns Jones vector from input vector unit vector
@@ -123,21 +153,27 @@ jv (signum.toV3 -> v) | v == e3 = hpv
 
 
 -- | 'hpm' Horizontal Polarizer Jones Matrix
+hpm :: PositF es => Cl3 es
 hpm = p3
 
 -- | 'vpm' Vertical Polarizer Jones Matrix
+vpm :: PositF es => Cl3 es
 vpm = bar p3
 
 -- | 'dpm' Diagonal Polarizer Jones Matrix
+dpm :: PositF es => Cl3 es
 dpm = p1
 
 -- | 'apm' Anti-diagonal Polarizer Jones Matrix
+apm :: PositF es => Cl3 es
 apm = bar p1
 
 -- | 'rpm' Right Hand Circular Polarizer Jones Matrix
+rpm :: PositF es => Cl3 es
 rpm = p2
 
 -- | 'lpm' Left Hand Circular Polarizer Jones Matrix
+lpm :: PositF es => Cl3 es
 lpm = bar p2
 
 
@@ -160,6 +196,7 @@ hpmRot (toR -> theta) =
   in roted * hpm * dag roted
 
 -- | 'qwp' Quarter Wave Plate Jones Matrix
+qwp :: PositF es => Cl3 es
 qwp = p3 - i * bar p3
 
 -- | 'qwpRot' Rotated Quarter Wave Plate Jones Matrix.
@@ -169,6 +206,7 @@ qwpRot (toR -> theta) =
   in roted * qwp * dag roted
 
 -- | 'hwp' Half Wave Plate Jones Matrix
+hwp :: PositF es => Cl3 es
 hwp = e3
 
 -- | 'hwpRot' Rotated Half Wave Plate Jones Matrix.
@@ -189,13 +227,14 @@ wpRot (toR -> phi) (toR -> theta) =
   in roted * wp phi * dag roted
 
 -- | 'refl' a Refelection Jones Matrix
+refl :: PositF es => Cl3 es
 refl = e3
 
 
 -- | 'factorize' is a function that takes an Jones Vector after transformation by an 
 -- optical chain, and returns the amplitude (amp), phase (phi), and normalized Jones 
 -- Vector (vec), by the factorization of the input such that: @__amp * exp (i*phi/2) * vec__@
-factorize :: Cl3 -> (Cl3,Cl3,Cl3)
+factorize :: PositF es => Cl3 es -> (Cl3 es, Cl3 es, Cl3 es)
 factorize jonesVec = 
   let c = toC jonesVec
       jonesVec' = recip c * jonesVec
@@ -215,14 +254,14 @@ factorize jonesVec =
 -------------------------------------------------------------------
 
 -- | 'randJonesVec' a Random Jones Vector.
-randJonesVec :: RandomGen g => g -> (Cl3, g)
+randJonesVec :: (PositF es, RandomGen g) => g -> (Cl3 es, g)
 randJonesVec g =
   let (v3, g') = randUnitV3 g
   in (jv v3,g')
 
 -- | 'randOrthogonalJonesVec' a Random Orthogonal Complementary pair of Jones
 -- Vectors.
-randOrthogonalJonesVec :: RandomGen g => g -> ((Cl3, Cl3), g)
+randOrthogonalJonesVec :: (PositF es, RandomGen g) => g -> ((Cl3 es, Cl3 es), g)
 randOrthogonalJonesVec g = 
   let (v3, g') = randUnitV3 g
   in ((jv v3, jv (bar v3)),g')
