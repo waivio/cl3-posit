@@ -11,6 +11,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE BlockArguments #-} -- is this the only way I can right read?
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MultiParamTypeClasses #-}  --   To convert between Posit Types, via Posit's Convertable Type Class
 
 
 #if __GLASGOW_HASKELL__ == 810
@@ -98,7 +99,10 @@ module Posit.Cl3
  eigvals, hasNilpotent,
  spectraldcmp, project,
  mIx, timesI,
- abssignum
+ abssignum,
+ 
+ -- * Cl3 Types are Convertable between different Posit representations
+ Convertible(..)
 ) where
 
 -- ifndef O_NO_DERIVED
@@ -2377,6 +2381,20 @@ acosh' x = recip $ sqrt (x - 1) * sqrt (x + 1)  -- pole at +/-1
 
 atanh' :: PositF es => Cl3 es -> Cl3 es
 atanh' = recip.(1-).(^2)  -- pole at +/-1
+
+instance (PositC es1, PositC es2) => Convertible (Cl3 es1) (Cl3 es2) where
+  convert (R a0) = R (convert a0)
+  convert (V3 a1 a2 a3) = V3 (convert a1) (convert a2) (convert a3)
+  convert (BV a23 a31 a12) = BV (convert a23) (convert a31) (convert a12)
+  convert (I a123) = I (convert a123)
+  convert (PV a0 a1 a2 a3) = PV (convert a0) (convert a1) (convert a2) (convert a3)
+  convert (H a0 a23 a31 a12) = H (convert a0) (convert a23) (convert a31) (convert a12)
+  convert (C a0 a123) = C (convert a0) (convert a123)
+  convert (BPV a1 a2 a3 a23 a31 a12) = BPV (convert a1) (convert a2) (convert a3) (convert a23) (convert a31) (convert a12)
+  convert (ODD a1 a2 a3 a123) = ODD (convert a1) (convert a2) (convert a3) (convert a123)
+  convert (TPV a23 a31 a12 a123) = TPV (convert a23) (convert a31) (convert a12) (convert a123)
+  convert (APS a0 a1 a2 a3 a23 a31 a12 a123) = APS (convert a0) (convert a1) (convert a2) (convert a3) (convert a23) (convert a31) (convert a12) (convert a123)
+
 
 
 #ifndef O_NO_STORABLE
