@@ -168,40 +168,40 @@ test-suite test-cl3
   default-language: Haskell2010
 
 -- Criterion based benchmark -threaded -rtsopts "-with-rtsopts=-N"
-benchmark bench-cl3-posit-nbody
-  type: exitcode-stdio-1.0
-  hs-source-dirs: benchmarks
-  main-is: NbodyGameCl3Posit.hs
-  ghc-options: -Wall -O2
-  build-depends:
-    cl3-posit,
-    base >=4.7 && <5,
-    criterion >=1.1 && <2
-  default-language: Haskell2010
+-- benchmark bench-cl3-posit-nbody
+--   type: exitcode-stdio-1.0
+--   hs-source-dirs: benchmarks
+--   main-is: NbodyGameCl3Posit.hs
+--   ghc-options: -Wall -O2
+--   build-depends:
+--     cl3-posit,
+--     base >=4.7 && <5,
+--     criterion >=1.1 && <2
+--   default-language: Haskell2010
 
 -- Weigh based benchmark for Vector and Massiv
-benchmark bench-cl3-posit-weigh
-  type: exitcode-stdio-1.0
-  hs-source-dirs: benchmarks
-  main-is: WeighStorableCl3Posit.hs
-  ghc-options: -Wall -O2
-  build-depends:
-    cl3-posit,
-    base >=4.7 && <5,
-    vector,
-    massiv >= 1.0,
-    weigh
-  default-language: Haskell2010
+-- benchmark bench-cl3-posit-weigh
+--   type: exitcode-stdio-1.0
+--   hs-source-dirs: benchmarks
+--   main-is: WeighStorableCl3Posit.hs
+--   ghc-options: -Wall -O2
+--   build-depends:
+--     cl3-posit,
+--     base >=4.7 && <5,
+--     vector,
+--     massiv >= 1.0,
+--     weigh
+--   default-language: Haskell2010
 
 -- Cl3/Massiv N-body benchmark -threaded -rtsopts "-with-rtsopts=-N"
-benchmark bench-cl3-posit-massiv-nbody
-  type: exitcode-stdio-1.0
-  hs-source-dirs: benchmarks
-  main-is: NbodyMassivCl3Posit.hs
-  ghc-options: -Wall -O2
-  build-depends:
-    cl3-posit,
-    base >=4.7 && <5,
-    time,
-    massiv >= 1.0
-  default-language: Haskell2010
+-- benchmark bench-cl3-posit-massiv-nbody
+--   type: exitcode-stdio-1.0
+--   hs-source-dirs: benchmarks
+--   main-is: NbodyMassivCl3Posit.hs
+--   ghc-options: -Wall -O2
+--   build-depends:
+--     cl3-posit,
+--     base >=4.7 && <5,
+--     time,
+--     massiv >= 1.0
+--   default-language: Haskell2010
