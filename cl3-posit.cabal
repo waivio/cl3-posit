@@ -49,8 +49,8 @@ tested-with:         GHC == 8.10.7,
                      GHC == 9.0.2,
                      GHC == 9.2.8,
                      GHC == 9.4.8,
-                     GHC == 9.6.5,
-                     GHC == 9.8.2
+                     GHC == 9.6.6,
+                     GHC == 9.8.4
 
 -- Extra files to be distributed with the package, such as examples or a 
 -- README.
@@ -116,13 +116,19 @@ library
   
   -- LANGUAGE extensions used by modules in this package.
   other-extensions:
-    GADTSyntax,
+    GADTs,
     ViewPatterns,
-    DeriveDataTypeable,
-    DeriveGeneric,
     CPP,
     BangPatterns,
-    MultiWayIf
+    MultiWayIf,
+    TypeApplications,
+    ScopedTypeVariables,
+    FlexibleContexts,
+    ConstraintKinds,
+    UndecidableInstances,
+    BlockArguments,
+    DataKinds,
+    MultiParamTypeClasses
   
   -- Other library packages from which modules are imported.
   build-depends:
@@ -147,18 +153,18 @@ library
   -- Base language which the package is written in.
   default-language:    Haskell2010
 
--- Criterion based test suite
+-- Test Cl3 Posit, all types concurently. For instance if we have 12 concurent processes on 12 cores.
 test-suite test-cl3
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: TestCl3Posit.hs
-  ghc-options: -Wall -O2
+  ghc-options: -Wall -O2 -threaded -rtsopts "-with-rtsopts=-N12"
   build-depends: 
     cl3-posit,
     posit,
     base >=4.7 && <5,
-    criterion >=1.1 && <2,
-    random >=1.0 && <2
+    random >=1.0 && <2,
+    time >=1.0 && <2
   default-language: Haskell2010
 
 -- Criterion based benchmark -threaded -rtsopts "-with-rtsopts=-N"

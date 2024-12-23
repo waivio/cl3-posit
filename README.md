@@ -132,12 +132,12 @@ The grade specialized type constructors multiply with the following multiplicati
 
 
 # Performace Benchmarking
-A benchmark has been developed based on the Haskell entry for the N-Body Benchmark in the [The Computer Language Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/) with some modifications to run with [Criterion](https://hackage.haskell.org/package/criterion).
-On my machine with GHC-8.10.7 the current fastest implementation completes 50M steps with a mean time of 4.014 seconds.  The benchmark uses a hand rolled implementation of vector math.  The Cl3 implementation completes 50M steps with a mean time of 5.691 seconds.  This 1.67 second difference amounts to a 33.5 ns difference in the inner loop.  This performance has been degraded with GHC regressions in GHC-9.0.2 and GHC-9.2.2 by ~5x.
-In the 3.0 release a [massiv](https://hackage.haskell.org/package/massiv) benchmark was added in addition to a [weigh](https://hackage.haskell.org/package/weigh) based benchmark.
+
+* Under Development...
 
 # Saftey and Correctness
-In the 3.0 release [Liquid Haskell](https://hackage.haskell.org/package/liquidhaskell) support was added, Liquid Haskell did prove its worth by finding a couple of bugs in the implementation.  So far it is an initial release and not much has been done to fully integrate Liquid Haskell to the library.
+
+* Liquid Haskell support Under Development...
 
 # Design Philosophy
 The design space for Clifford Algebra libraries was explored quite a bit before the development of this library.  Initially the isomorphism of APS with 2x2 Complex Matrices was used, this had the draw back that multiplying the scalar 2 * 2 would incur all of the computational cost of multiplying two 2x2 complex matrices.
@@ -146,7 +146,7 @@ Then a single constructor data type for APS was developed, but this had all of t
 The specialized ADT Constructor version of the library was developed and it showed that it had some promise.
 More of the design space was explored, a version of the Cl3 library was developed using Multi-parameter Type Classes and Functional Dependencies, this didn't appear to have much gained over the specialized ADT Syntax interface and it didn't use the standard Prelude classes like Num, Float, etc.  It was also difficult for me to figure out how to code a `reduce` function.
 So the specialized ADT Constructor design of the Cl3 library was finished and released.
-Do you GADT?
+Do you GADT?  `Cl3` is now polymorphic with polymorphic `Posits`.
 
 # How does this fit in with the existing Haskell ecosystem?
 Cl3 is meant to be a [Linear](https://hackage.haskell.org/package/linear) killer based on Geometric Algebra.  The linear package

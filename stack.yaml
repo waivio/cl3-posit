@@ -1,5 +1,7 @@
-# resolver: nightly-2024-06-30 # ghc-9.8.2
-resolver: lts-22.27  # ghc-9.6.5
+# resolver: nightly-2024-12-20 # ghc-9.10.1
+resolver: lts-23.1 # ghc-9.8.4
+# resolver: lts-22.43  # ghc-9.6.6
+# resolver: lts-22.27  # ghc-9.6.5
 # resolver: lts-21.25 # ghc-9.4.8
 # resolver: lts-20.26 # ghc-9.2.8
 # resolver: lts-19.0 # ghc-9.0.2
@@ -10,10 +12,10 @@ packages:
 allow-newer: true
 extra-deps:
   # For Posit:
-  - posit-2022.2.0.0
+  - posit-2022.2.0.1
   - cl3-3.0.0.0 # cl3 should also compile using Doubles
   # For Massiv benchmarks:
-  - massiv-1.0.1.1
+  - massiv-1.0.4.0
   - scheduler-2.0.0
 
   # For LiquidHaskell:
