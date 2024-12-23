@@ -17,7 +17,7 @@
 
 --------------------------------------------------------------------------------------------
 -- |
--- Copyright   :  (C) 2018 Nathan Waivio
+-- Copyright   :  (C) 2018-2024 Nathan Waivio
 -- License     :  BSD3
 -- Maintainer  :  Nathan Waivio <nathan.waivio@gmail.com>
 -- Stability   :  Stable
